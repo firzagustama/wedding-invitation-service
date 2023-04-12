@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,21 +26,21 @@ import java.util.logging.Logger;
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class Integration {
+    public static String userId;
     public Logger logger = Logger.getLogger(Integration.class.getName());
     @Autowired
     public WebApplicationContext webApplicationContext;
     public MockMvc mockMvc;
-    public static String userId;
-
-    @BeforeEach
-    void setUpEach() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-    }
 
     @BeforeAll
     static void setUpAll(@Autowired UserRepository userRepository, @Autowired UserWishRepository userWishRepository, @Autowired RsvpRepository rsvpRepository) {
         Users user = userRepository.save(new Users("Integration Test", 0, false, "08193847888"));
         userId = user.getId().toString();
+    }
+
+    @BeforeEach
+    void setUpEach() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
@@ -88,7 +89,7 @@ public class Integration {
         ApiResponse<CreateWishResponse> response = post("/wish/create", request, CreateWishResponse.class);
         Assertions.assertTrue(response.isSuccess());
 
-        var data = response.getData();
+        CreateWishResponse data = response.getData();
         Assertions.assertEquals("Mr.", data.getTitle());
         Assertions.assertEquals("Integration Test", data.getName());
         Assertions.assertEquals("Wish 1", data.getWish());
@@ -97,7 +98,7 @@ public class Integration {
     @Test
     @Order(5)
     public void paginationWish_valid() throws Exception {
-        var request = new CreateWishRequest();
+        CreateWishRequest request = new CreateWishRequest();
         request.setUserId(userId);
 
         request.setWish("Wish 2");
@@ -109,28 +110,28 @@ public class Integration {
         request.setWish("Wish 4");
         post("/wish/create", request, CreateWishResponse.class);
 
-        var pRequest1 = new ListWishPaginationRequest();
+        ListWishPaginationRequest pRequest1 = new ListWishPaginationRequest();
         pRequest1.setPageNo(1);
         pRequest1.setPageSize(2);
 
-        var pRequest2 = new ListWishPaginationRequest();
+        ListWishPaginationRequest pRequest2 = new ListWishPaginationRequest();
         pRequest2.setPageNo(2);
         pRequest2.setPageSize(2);
 
-        var response1 = post("/wish/getList", pRequest1, ListWishPaginationResponse.class);
-        var response2 = post("/wish/getList", pRequest2, ListWishPaginationResponse.class);
+        ApiResponse<ListWishPaginationResponse> response1 = post("/wish/getList", pRequest1, ListWishPaginationResponse.class);
+        ApiResponse<ListWishPaginationResponse> response2 = post("/wish/getList", pRequest2, ListWishPaginationResponse.class);
 
         Assertions.assertTrue(response1.isSuccess());
         Assertions.assertTrue(response2.isSuccess());
 
-        var data1 = response1.getData();
-        var wish1 = data1.getWishes();
+        ListWishPaginationResponse data1 = response1.getData();
+        List<CreateWishResponse> wish1 = data1.getWishes();
 
         Assertions.assertEquals("Wish 4", wish1.get(0).getWish());
         Assertions.assertEquals("Wish 3", wish1.get(1).getWish());
 
-        var data2 = response2.getData();
-        var wish2 = data2.getWishes();
+        ListWishPaginationResponse data2 = response2.getData();
+        List<CreateWishResponse> wish2 = data2.getWishes();
 
         Assertions.assertEquals("Wish 2", wish2.get(0).getWish());
         Assertions.assertEquals("Wish 1", wish2.get(1).getWish());

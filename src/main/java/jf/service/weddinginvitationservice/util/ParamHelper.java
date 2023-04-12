@@ -19,7 +19,7 @@ public class ParamHelper {
     }
 
     public static void paramNotNullOrBlank(String field, String fieldName) {
-        if (field == null || field.isEmpty() || field.isBlank()) {
+        if (field == null || field.isEmpty()) {
             throw new ApiException(ApiResponseCodes.PARAM_ILLEGAL.getResponseCode(), fieldName + " can't be null or blank");
         }
     }

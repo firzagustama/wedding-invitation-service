@@ -69,7 +69,7 @@ public class RsvpApiTests extends BaseApiTests {
         request.setUserId(user.getId().toString());
         request.setRsvp(false);
 
-        var response = post("/rsvp/create", request, CreateRsvpResponse.class);
+        ApiResponse<CreateRsvpResponse> response = post("/rsvp/create", request, CreateRsvpResponse.class);
         Assertions.assertTrue(response.isSuccess());
     }
 }
